@@ -1,11 +1,16 @@
-// pesto.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+// main.cpp : This file contains the 'main' function. Program execution begins and ends there.
+
 
 #include <iostream>
+#include "libheif/heif.h"
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
+	for (int i = 1; i < argc; i++) {
+		std::cout << argv[i] << std::endl;
+	}
+
+	return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
