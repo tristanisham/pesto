@@ -3,7 +3,8 @@
   "version-string": "0.0.1",
   "dependencies": [
     "libheif",
-    "lodepng"
+    "lodepng",
+    "indicators"
   ],
   "builtin-baseline": "638b1588be3a265a9c7ad5b212cef72a1cad336a"
 }
