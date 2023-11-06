@@ -3,23 +3,181 @@
 
 #include <iostream>
 #include "libheif/heif.h"
+#include "lodepng.h"
+#include <vector>
+#include <filesystem>
+#include <indicators/progress_bar.hpp>
 
-int main(int argc, char* argv[])
-{
+int heif_to_png(std::string const& from, std::optional<std::filesystem::path> to) {
+
+	heif_context* ctx = heif_context_alloc();
+	auto err = heif_context_read_from_file(ctx, from.c_str(), nullptr);
+	if (err.code > 0) {
+		std::cerr << err.message << std::endl;
+		return 1;
+	}
+
+	heif_image_handle* handle;
+	err = heif_context_get_primary_image_handle(ctx, &handle);
+	if (err.code > 0) {
+		std::cerr << err.message << std::endl;
+		return 1;
+	}
+
+	heif_image* img;
+	err = heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
+	if (err.code > 0) {
+		std::cerr << err.message << std::endl;
+		return 1;
+	}
+
+	int stride;
+	uint8_t const* data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
+
+	// Retrieve the dimensions of the image
+	int width = heif_image_handle_get_width(handle);
+	int height = heif_image_handle_get_height(handle);
+
+
+	std::filesystem::path to_path;
+	if (to.has_value()) {
+		to_path = to.value();
+	}
+	else {
+		std::filesystem::path tp_path{ from };
+		tp_path.replace_extension(".png");
+		to_path = tp_path;
+	}
+
+	std::vector<uint8_t> bytes{ data, data + stride * height };
+
+	unsigned error = lodepng::encode(to_path.string(), bytes, (unsigned)width, (unsigned)height, LCT_RGB);
+	if (error) {
+		//std::cerr << "stride*height " << stride * height << " w: " << width << " h: " << height << std::endl;
+		std::cerr << "encoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+	}
+
+	heif_image_release(img);
+	heif_image_handle_release(handle);
+	heif_context_free(ctx);
+
+	return 0;
+}
+
+int main(int argc, char* argv[]) {
+	std::vector<std::filesystem::path> targets;
+	std::optional<std::string> outDir;
+
 	for (int i = 1; i < argc; i++) {
-		std::cout << argv[i] << std::endl;
+		std::string arg{ argv[i] };
+
+		// Command line handler
+		if (arg == "--outdir") {
+			if (argc > i + 1) {
+				outDir = std::string{ argv[i + 1] };
+				i += 1;
+			}
+			continue;
+		}
+
+
+		std::filesystem::path target{ arg };
+		if (std::filesystem::exists(target)) {
+			if (std::filesystem::is_directory(target)) {
+				for (auto const& entry : std::filesystem::recursive_directory_iterator(target)) {
+					std::filesystem::path entry_path{ entry };
+					if (entry_path.extension() == ".heic") {
+						targets.push_back(entry_path);
+					}
+				}
+			}
+			else if (std::filesystem::is_regular_file(target) && target.extension() == ".heic") {
+				targets.push_back(target);
+			}
+		}
+	}
+
+	if (outDir.has_value()) {
+		std::filesystem::create_directories(outDir.value());
+	}
+
+	indicators::ProgressBar pbar{
+	   indicators::option::BarWidth{50},
+	   indicators::option::Start{"["},
+	   indicators::option::Fill{"="},
+	   indicators::option::Lead{">"},
+	   indicators::option::Remainder{" "},
+	   indicators::option::End{"]"},
+	   indicators::option::PostfixText{"HEIF -> PNG"},
+	   indicators::option::ForegroundColor{indicators::Color::yellow},
+	   indicators::option::ShowElapsedTime{true},
+	   indicators::option::ShowRemainingTime{true},
+	   indicators::option::ShowPercentage{true},
+	   indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}},
+	   indicators::option::MaxProgress{targets.size()}
+	};
+
+	//std::mutex progress_mutex;
+	//std::vector<std::thread> threads;
+
+	//for (const auto& p : targets) {
+	//	threads.emplace_back([&pbar, &progress_mutex, &p, &outDir]() {
+	//		std::filesystem::path output_path;
+	//		if (outDir) {
+	//			std::filesystem::path output_dir{ outDir.value() };
+	//			output_path = output_dir / p.filename();
+	//			output_path.replace_extension(".png");
+	//		} else {
+	//			output_path = p;
+	//			output_path.replace_extension(".png");
+	//		}
+
+
+	//		auto result = heif_to_png(p.string(), output_path);
+	//		if (result > 0) {
+	//			std::cout << "Error converting: " << p << std::endl;
+	//		}
+
+	//		{
+	//			std::lock_guard<std::mutex> lock(progress_mutex);
+	//			pbar.tick();
+	//		}
+	//	});
+	//}
+
+	//// Wait for all threads to finish
+	//for (auto& t : threads) {
+	//	if (t.joinable()) {
+	//		t.join();
+	//	}
+	//}
+
+
+
+	for (std::filesystem::path const& p : targets) {
+		std::filesystem::path output_path;
+		if (outDir) {
+			std::filesystem::path output_dir{ outDir.value() };
+			output_path = output_dir / p.filename();
+			output_path.replace_extension(".png");
+		}
+		else {
+			output_path = p;
+			output_path.replace_extension(".png");
+		}
+		auto result = heif_to_png(p.string(), output_path);
+		if (result > 0) {
+			std::cout << "Error converting: " << p << std::endl;
+		}
+
+		pbar.tick();
+	}
+
+
+	if (pbar.is_completed()) {
+		std::cout << "Finished converting images" << std::endl;
 	}
 
 	return 0;
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
