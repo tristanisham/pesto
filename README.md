@@ -15,5 +15,7 @@ Use the `--outdir <dir>` flag to specify where it should dump its output, otherw
 I wrote Pesto for Windows because that's where I do most of my photo editing, but it tries to exclusivly use C++20 and portable libraries that should compile without trouble on Linux/MacOS using 
 Clang++ or G++. 
 
-## Contributin
+`vcpkg install`
+
+## Contributing
 Feel free to contribute a CMakeList.txt or Makefile for all the Linux/Mac chads out there!
