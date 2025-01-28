@@ -9,7 +9,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-
+if (WIN32)
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+endif()
 
 project(pesto)
 
@@ -34,15 +36,14 @@ elseif(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
 endif()
 
-include(FetchContent)
+# include(FetchContent)
 
-# Fetch SDL2
 find_package(libheif)
 
 
 add_executable(pesto ${SRC_FILES})
 
-target_include_directories(pesto PRIVATE "vendor/")
+target_include_directories(pesto PRIVATE "vendor/" "src/")
 target_include_directories(pesto PRIVATE ${libheif_SOURCE_DIR} ${libheif_BINARY_DIR})
 
 

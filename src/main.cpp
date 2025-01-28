@@ -1,5 +1,5 @@
 /**
-Copyright 2023 Tristan Isham
+Copyright 2025 Tristan Isham
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the �Software�),
 to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, 
@@ -21,7 +21,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <filesystem>
 #include <indicators/indicators.hpp>
 
-int heif_to_png(std::string const& from, std::optional<std::filesystem::path> to) {
+static int heif_to_png(std::string const& from, std::optional<std::filesystem::path> to) {
 
 	heif_context* ctx = heif_context_alloc();
 	auto err = heif_context_read_from_file(ctx, from.c_str(), nullptr);
