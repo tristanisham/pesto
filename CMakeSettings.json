@@ -24,30 +24,29 @@
     },
     {
       "name": "WSL-Clang-Release",
-      "generator": "Ninja",
+      "generator": "Unix Makefiles",
       "configurationType": "Release",
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeExecutable": "cmake",
       "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Release",
-      "buildCommandArgs": "",
+      "buildCommandArgs": "-j8",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_clang_x64" ],
       "wslPath": "openSUSE-Tumbleweed"
     },
     {
       "name": "WSL-Clang-Debug",
-      "generator": "Ninja",
+      "generator": "Unix Makefiles",
       "configurationType": "Debug",
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeExecutable": "cmake",
       "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
+      "buildCommandArgs": "-j8",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_clang_x64" ],
-      "wslPath": "openSUSE-Tumbleweed",
-      "variables": []
+      "wslPath": "openSUSE-Tumbleweed"
     }
   ]
 }
