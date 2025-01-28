@@ -130,43 +130,7 @@ int main(int argc, char* argv[]) {
 	   indicators::option::MaxProgress{targets.size()}
 	};
 
-	//std::mutex progress_mutex;
-	//std::vector<std::thread> threads;
-
-	//for (const auto& p : targets) {
-	//	threads.emplace_back([&pbar, &progress_mutex, &p, &outDir]() {
-	//		std::filesystem::path output_path;
-	//		if (outDir) {
-	//			std::filesystem::path output_dir{ outDir.value() };
-	//			output_path = output_dir / p.filename();
-	//			output_path.replace_extension(".png");
-	//		} else {
-	//			output_path = p;
-	//			output_path.replace_extension(".png");
-	//		}
-
-
-	//		auto result = heif_to_png(p.string(), output_path);
-	//		if (result > 0) {
-	//			std::cout << "Error converting: " << p << std::endl;
-	//		}
-
-	//		{
-	//			std::lock_guard<std::mutex> lock(progress_mutex);
-	//			pbar.tick();
-	//		}
-	//	});
-	//}
-
-	//// Wait for all threads to finish
-	//for (auto& t : threads) {
-	//	if (t.joinable()) {
-	//		t.join();
-	//	}
-	//}
-
-
-
+	
 	for (std::filesystem::path const& p : targets) {
 		std::filesystem::path output_path;
 		if (outDir) {
